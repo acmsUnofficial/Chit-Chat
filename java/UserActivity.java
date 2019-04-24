@@ -8,12 +8,15 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
 
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
 import com.google.firebase.database.ServerValue;
 import com.squareup.picasso.Picasso;
 
@@ -23,6 +26,8 @@ public class UserActivity extends AppCompatActivity {
 
     private RecyclerView mUsersList;
     private DatabaseReference mUsersDatabaseReference;
+    EditText searchuser;
+    Button searchbtn;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,12 +40,20 @@ public class UserActivity extends AppCompatActivity {
 
         mUsersDatabaseReference= FirebaseDatabase.getInstance().getReference().child("users");
         mUsersDatabaseReference.keepSynced(true);
+        searchuser=findViewById(R.id.semail);
+        searchbtn=findViewById(R.id.searchbtn);
+        searchbtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String name= searchuser.getText().toString();
+                searchforpeople(name);
+            }
+        });
 
     }
 
-    @Override
-    protected void onStart() {
-        super.onStart();
+    private void searchforpeople(String name){
+        Query searchppl=mUsersDatabaseReference.orderByChild("email").startAt(name).endAt(name+"\uf8ff");
         String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
         mUsersDatabaseReference.child(uid).child("online").setValue("true");
 
@@ -49,7 +62,7 @@ public class UserActivity extends AppCompatActivity {
                 Users.class,
                 R.layout.recycle_list_single_user,
                 UserViewHolder.class,
-                mUsersDatabaseReference
+                searchppl
         ) {
             @Override
             protected void populateViewHolder(UserViewHolder viewHolder, Users users, int position) {
